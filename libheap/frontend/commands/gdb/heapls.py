@@ -45,6 +45,7 @@ class heapls(gdb.Command):
         # XXX: from old heap command, replace
         main_arena = self.dbg.read_variable("main_arena")
         main_arena_address = self.dbg.format_address(main_arena.address)
+        thread_arena = self.dbg.read_variable("thread_arena")
 
         argv = self.dbg.string_to_argv(arg)
 
@@ -54,7 +55,7 @@ class heapls(gdb.Command):
             print_error('Too many arguments')
             return
         else:
-            arena_address = main_arena_address
+            arena_address = int(thread_arena)
 
         ar_ptr = malloc_state(arena_address, debugger=self.dbg,
                               version=self.version)

@@ -45,26 +45,28 @@ class fastbins(gdb.Command):
         elif ptm.SIZE_SZ == 8:
             pad_width = 29
 
-        # XXX: from old heap command, replace
-        main_arena = self.dbg.read_variable("main_arena")
-        arena_address = self.dbg.format_address(main_arena.address)
+        fb_num = None
+        if len(arg) == 0:
+            # XXX: from old heap command, replace
+            main_arena = self.dbg.read_variable("main_arena")
+            arena_address = self.dbg.format_address(main_arena.address)
+            thread_arena = self.dbg.read_variable("thread_arena")
+            arena_address = int(thread_arena)
+        else:
+            argv = arg.split(" ")
+            argv.reverse()
+            arena_address = int(argv.pop(), 0)
+            if argv:
+                fb_num = int(argv.pop())
+
+        print_title("fastbins", end="")
+
         ar_ptr = malloc_state(arena_address, debugger=self.dbg,
                               version=self.version)
         # 8 bytes into struct malloc_state on both 32/64bit
         # XXX: fixme for glibc <= 2.19 with THREAD_STATS
         fastbinsY = int(ar_ptr.address) + 8
         fb_base = fastbinsY
-
-        if len(arg) == 0:
-            fb_num = None
-        else:
-            fb_num = int(arg.split(" ")[0])
-
-            if (fb_num) >= ptm.NFASTBINS:
-                print_error("Invalid fastbin number")
-                return
-
-        print_title("fastbins", end="")
 
         for fb in range(0, ptm.NFASTBINS):
             if fb_num is not None:
